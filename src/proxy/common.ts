@@ -99,13 +99,7 @@ export function remoteSocketToWS(
   });
 }
 
-export async function lookupTrojanUser(env: Env, password: string): Promise<User | null> {
-  return env.DB.prepare("SELECT * FROM users WHERE sha224_password = ? AND enabled = 1")
-    .bind(password)
-    .first<User>();
-}
-
-export async function lookupVlessUser(env: Env, uuid: string): Promise<User | null> {
+export async function lookupUserByUUID(env: Env, uuid: string): Promise<User | null> {
   return env.DB.prepare("SELECT * FROM users WHERE uuid = ? AND enabled = 1")
     .bind(uuid)
     .first<User>();

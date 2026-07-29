@@ -12,7 +12,7 @@
     {
       "binding": "DB",
       "database_name": "trojan",
-      "database_id": "00000000-0000-0000-0000-000000000000",
+      "database_id": "50caa101-52be-41dd-9581-80c24978253f",
       "migrations_dir": "./migrations"
     }
   ]

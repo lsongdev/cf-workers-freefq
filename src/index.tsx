@@ -1,6 +1,6 @@
 import { Hono } from "hono";
 import { createAdminSession, currentAdmin, requireAdmin, revokeAdminSession } from "./auth";
-import { randomHex, sha224 } from "./crypto";
+
 import { trojanOverWSHandler } from "./proxy/trojan";
 import { vlessOverWSHandler } from "./proxy/vless";
 import type { User } from "./types";
@@ -57,12 +57,10 @@ app.post("/admin/users", async (context) => {
     return context.html(<AdminPage users={users.results} host={host} error="Name is required." />, 400);
   }
   const uuid = crypto.randomUUID();
-  const rawPassword = randomHex(16);
-  const sha224Password = await sha224(rawPassword);
   try {
     await context.env.DB.prepare(
-      "INSERT INTO users (name, uuid, sha224_password) VALUES (?, ?, ?)",
-    ).bind(name, uuid, sha224Password).run();
+      "INSERT INTO users (name, uuid) VALUES (?, ?)",
+    ).bind(name, uuid).run();
   } catch {
     const users = await context.env.DB.prepare("SELECT * FROM users ORDER BY created_at DESC").all<User>();
     const host = context.req.header("Host") || "localhost:8787";
@@ -117,14 +115,14 @@ app.get("/link/vless/:uuid", async (context) => {
   return context.text(link);
 });
 
-app.get("/link/trojan/:password", async (context) => {
-  const password = context.req.param("password");
+app.get("/link/trojan/:uuid", async (context) => {
+  const uuid = context.req.param("uuid");
   const user = await context.env.DB.prepare(
-    "SELECT * FROM users WHERE sha224_password = ? AND enabled = 1",
-  ).bind(password).first<User>();
+    "SELECT * FROM users WHERE uuid = ? AND enabled = 1",
+  ).bind(uuid).first<User>();
   if (!user) return context.text("User not found", 404);
   const host = context.req.header("Host") || "localhost:8787";
-  const link = `trojan://${user.sha224_password}@${host}:443?type=ws&host=${host}&path=%2Ftrojan&security=tls#${user.name}`;
+  const link = `trojan://${user.uuid}@${host}:443?type=ws&host=${host}&path=%2Ftrojan&security=tls#${user.name}`;
   return context.text(link);
 });
 

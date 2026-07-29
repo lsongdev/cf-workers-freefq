@@ -4,7 +4,7 @@ import {
   makeReadableWebSocketStream,
   remoteSocketToWS,
   safeCloseWebSocket,
-  lookupVlessUser,
+  lookupUserByUUID,
 } from "./common";
 
 const hexTbl: string[] = [];
@@ -162,7 +162,7 @@ async function parseVlessHeader(
   const version = new Uint8Array(buffer.slice(0, 1));
   const receivedUUID = fmtUUID(new Uint8Array(buffer.slice(1, 17)));
 
-  const user = await lookupVlessUser(env, receivedUUID);
+  const user = await lookupUserByUUID(env, receivedUUID);
   if (!user) {
     return { hasError: true, message: "invalid user" };
   }

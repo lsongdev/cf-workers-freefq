@@ -2,7 +2,6 @@ export interface User {
   id: number;
   name: string;
   uuid: string;
-  sha224_password: string;
   enabled: number;
   created_at: string;
   updated_at: string;

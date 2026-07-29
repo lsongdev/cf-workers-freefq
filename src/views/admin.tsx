@@ -30,8 +30,7 @@ export function AdminPage(props: {
           <thead>
             <tr>
               <th>Name</th>
-              <th>UUID</th>
-              <th>Password</th>
+              <th>UUID (Password)</th>
               <th>Status</th>
               <th>Actions</th>
             </tr>
@@ -41,7 +40,6 @@ export function AdminPage(props: {
               <tr key={user.id}>
                 <td><strong>{user.name}</strong></td>
                 <td class="mono">{user.uuid}</td>
-                <td class="mono" style="max-width:200px;overflow:hidden;text-overflow:ellipsis">{user.sha224_password}</td>
                 <td>
                   <span class={`tag ${user.enabled ? "active" : "inactive"}`}>
                     {user.enabled ? "active" : "disabled"}
@@ -61,7 +59,7 @@ export function AdminPage(props: {
                     <a class="button outline" style="font-size:.8rem;padding:.3rem .6rem"
                        href={`/link/vless/${user.uuid}`} target="_blank">VLESS</a>
                     <a class="button outline" style="font-size:.8rem;padding:.3rem .6rem"
-                       href={`/link/trojan/${user.sha224_password}`} target="_blank">Trojan</a>
+                       href={`/link/trojan/${user.uuid}`} target="_blank">Trojan</a>
                   </div>
                 </td>
               </tr>
@@ -81,7 +79,7 @@ export function AdminPage(props: {
             </div>
             <div style="margin-top:.5rem;font-size:.85rem">
               <div style="margin-bottom:.25rem;color:var(--muted)">Trojan</div>
-              <div class="config-link">{`trojan://${user.sha224_password}@${props.host}:443?type=ws&host=${props.host}&path=%2Ftrojan&security=tls#${user.name}`}</div>
+              <div class="config-link">{`trojan://${user.uuid}@${props.host}:443?type=ws&host=${props.host}&path=%2Ftrojan&security=tls#${user.name}`}</div>
             </div>
           </div>
         ))}

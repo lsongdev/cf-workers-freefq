@@ -12,12 +12,12 @@ export function Layout(props: {
         <meta charset="utf-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <meta name="color-scheme" content="light dark" />
-        <title>{props.title} · Proxy</title>
+        <title>{props.title} · Rocket</title>
         <style>{css}</style>
       </head>
       <body>
         <header>
-          <a class="brand" href={props.admin ? "/admin" : "/"}>Proxy</a>
+          <a class="brand" href={props.admin ? "/admin" : "/"}>🚀 Rocket</a>
           {props.admin && (
             <nav>
               <a class="button outline" href="/admin/logout">Sign out</a>

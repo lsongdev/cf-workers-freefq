@@ -3,7 +3,7 @@ import {
   makeReadableWebSocketStream,
   remoteSocketToWS,
   safeCloseWebSocket,
-  lookupTrojanUser,
+  lookupUserByUUID,
 } from "./common";
 
 export async function trojanOverWSHandler(request: Request, env: Env): Promise<Response> {
@@ -70,23 +70,31 @@ async function parseTrojanHeader(
   addressRemote?: string;
   rawClientData?: ArrayBuffer;
 }> {
-  if (buffer.byteLength < 58) {
+  if (buffer.byteLength < 40) {
     return { hasError: true, message: "invalid data: too short" };
   }
 
-  const password = new TextDecoder().decode(new Uint8Array(buffer.slice(0, 56)));
+  const bytes = new Uint8Array(buffer);
+  let crlfIndex = -1;
+  for (let i = 0; i < bytes.length - 1; i++) {
+    if (bytes[i] === 0x0d && bytes[i + 1] === 0x0a) {
+      crlfIndex = i;
+      break;
+    }
+  }
 
-  if (new Uint8Array(buffer.slice(56, 57))[0] !== 0x0d ||
-      new Uint8Array(buffer.slice(57, 58))[0] !== 0x0a) {
+  if (crlfIndex === -1) {
     return { hasError: true, message: "invalid header format (missing CR LF)" };
   }
 
-  const user = await lookupTrojanUser(env, password);
+  const uuid = new TextDecoder().decode(buffer.slice(0, crlfIndex));
+
+  const user = await lookupUserByUUID(env, uuid);
   if (!user) {
-    return { hasError: true, message: "invalid password" };
+    return { hasError: true, message: "invalid uuid" };
   }
 
-  const socks5DataBuffer = buffer.slice(58);
+  const socks5DataBuffer = buffer.slice(crlfIndex + 2);
   if (socks5DataBuffer.byteLength < 6) {
     return { hasError: true, message: "invalid SOCKS5 request data" };
   }
