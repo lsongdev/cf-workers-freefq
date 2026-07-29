@@ -126,6 +126,79 @@ app.get("/link/trojan/:uuid", async (context) => {
   return context.text(link);
 });
 
+app.get("/link/clash/:uuid", async (context) => {
+  const uuid = context.req.param("uuid");
+  const host = context.req.header("Host") || "localhost:8787";
+  const user = await context.env.DB.prepare(
+    "SELECT * FROM users WHERE uuid = ? AND enabled = 1",
+  ).bind(uuid).first<User>();
+  if (!user) return context.text("User not found", 404);
+  return context.text(clashConfig([user], host), 200, { "Content-Type": "text/yaml; charset=utf-8" });
+});
+
+app.get("/link/shadowrocket/:uuid", async (context) => {
+  const uuid = context.req.param("uuid");
+  const host = context.req.header("Host") || "localhost:8787";
+  const user = await context.env.DB.prepare(
+    "SELECT * FROM users WHERE uuid = ? AND enabled = 1",
+  ).bind(uuid).first<User>();
+  if (!user) return context.text("User not found", 404);
+  return context.text(rocketConfig([user], host));
+});
+
+function clashConfig(users: User[], host: string): string {
+  const lines: string[] = [
+    "port: 7890",
+    "socks-port: 7891",
+    "mode: Rule",
+    "log-level: info",
+    "",
+    "proxies:",
+  ];
+  for (const u of users) {
+    lines.push(
+      `  - name: "${u.name}-vless"`,
+      `    type: vless`,
+      `    server: ${host}`,
+      `    port: 443`,
+      `    uuid: ${u.uuid}`,
+      `    network: ws`,
+      `    tls: true`,
+      `    servername: ${host}`,
+      `    ws-opts:`,
+      `      path: "/vless"`,
+      `      headers:`,
+      `        Host: ${host}`,
+      ``,
+      `  - name: "${u.name}-trojan"`,
+      `    type: trojan`,
+      `    server: ${host}`,
+      `    port: 443`,
+      `    password: ${u.uuid}`,
+      `    network: ws`,
+      `    tls: true`,
+      `    servername: ${host}`,
+      `    ws-opts:`,
+      `      path: "/trojan"`,
+      `      headers:`,
+      `        Host: ${host}`,
+    );
+  }
+  lines.push("", "proxy-groups:", `  - name: Proxy`, `    type: select`, `    proxies:`, `      - "DIRECT"`);
+  for (const u of users) {
+    lines.push(`      - "${u.name}-vless"`, `      - "${u.name}-trojan"`);
+  }
+  lines.push("", "rules:", '  - MATCH,Proxy');
+  return lines.join("\n");
+}
+
+function rocketConfig(users: User[], host: string): string {
+  return users.flatMap((u) => [
+    `vless://${u.uuid}@${host}:443?encryption=none&security=tls&sni=${host}&fp=randomized&type=ws&host=${host}&path=%2Fvless#${u.name}-vless`,
+    `trojan://${u.uuid}@${host}:443?type=ws&host=${host}&path=%2Ftrojan&security=tls#${u.name}-trojan`,
+  ]).join("\n");
+}
+
 app.notFound((context) => context.text("Not found", 404));
 app.onError((error, context) => {
   console.error(error.message);

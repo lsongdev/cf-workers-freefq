@@ -1,4 +1,5 @@
 import type { User } from "../types";
+import { sha224 } from "../crypto";
 
 export const WS_READY_STATE_OPEN = 1;
 
@@ -103,4 +104,16 @@ export async function lookupUserByUUID(env: Env, uuid: string): Promise<User | n
   return env.DB.prepare("SELECT * FROM users WHERE uuid = ? AND enabled = 1")
     .bind(uuid)
     .first<User>();
+}
+
+export async function lookupTrojanUser(env: Env, passwordHash: string): Promise<User | null> {
+  if (!/^[0-9a-f]{56}$/i.test(passwordHash)) return null;
+
+  const users = await env.DB.prepare("SELECT * FROM users WHERE enabled = 1").all<User>();
+  for (const user of users.results) {
+    if (await sha224(user.uuid) === passwordHash.toLowerCase()) {
+      return user;
+    }
+  }
+  return null;
 }

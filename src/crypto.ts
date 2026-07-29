@@ -63,8 +63,8 @@ export async function sha224(value: string): Promise<string> {
   pad.set(msg);
   pad[msg.length] = 0x80;
   const dv = new DataView(pad.buffer, pad.byteOffset, pad.byteLength);
-  dv.setUint32(padLen - 4, bitLen >>> 32, false);
-  dv.setUint32(padLen - 8, bitLen & 0xffffffff, false);
+  dv.setUint32(padLen - 8, Math.floor(bitLen / 0x100000000), false);
+  dv.setUint32(padLen - 4, bitLen >>> 0, false);
   const W = new Uint32Array(64);
   const H = new Uint32Array(IV);
   for (let b = 0; b < padLen; b += 64) {

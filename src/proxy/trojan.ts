@@ -3,14 +3,15 @@ import {
   makeReadableWebSocketStream,
   remoteSocketToWS,
   safeCloseWebSocket,
-  lookupUserByUUID,
+  lookupTrojanUser,
 } from "./common";
 
 export async function trojanOverWSHandler(request: Request, env: Env): Promise<Response> {
   const webSocketPair = new WebSocketPair();
   const pair = Object.values(webSocketPair) as [WebSocket, WebSocket];
   const [client, webSocket] = pair;
-  webSocket.accept();
+  webSocket.binaryType = "arraybuffer";
+  webSocket.accept({ allowHalfOpen: true });
 
   let address = "";
   let portWithRandomLog = "";
@@ -70,31 +71,24 @@ async function parseTrojanHeader(
   addressRemote?: string;
   rawClientData?: ArrayBuffer;
 }> {
-  if (buffer.byteLength < 40) {
+  if (buffer.byteLength < 58) {
     return { hasError: true, message: "invalid data: too short" };
   }
 
   const bytes = new Uint8Array(buffer);
-  let crlfIndex = -1;
-  for (let i = 0; i < bytes.length - 1; i++) {
-    if (bytes[i] === 0x0d && bytes[i + 1] === 0x0a) {
-      crlfIndex = i;
-      break;
-    }
-  }
-
-  if (crlfIndex === -1) {
+  const passwordHashLength = 56;
+  if (bytes[passwordHashLength] !== 0x0d || bytes[passwordHashLength + 1] !== 0x0a) {
     return { hasError: true, message: "invalid header format (missing CR LF)" };
   }
 
-  const uuid = new TextDecoder().decode(buffer.slice(0, crlfIndex));
+  const passwordHash = new TextDecoder().decode(buffer.slice(0, passwordHashLength));
 
-  const user = await lookupUserByUUID(env, uuid);
+  const user = await lookupTrojanUser(env, passwordHash);
   if (!user) {
-    return { hasError: true, message: "invalid uuid" };
+    return { hasError: true, message: "invalid password" };
   }
 
-  const socks5DataBuffer = buffer.slice(crlfIndex + 2);
+  const socks5DataBuffer = buffer.slice(passwordHashLength + 2);
   if (socks5DataBuffer.byteLength < 6) {
     return { hasError: true, message: "invalid SOCKS5 request data" };
   }

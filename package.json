@@ -1,12 +1,12 @@
 {
-  "name": "cf-workers-trojan",
+  "name": "cf-workers-rocket",
   "version": "0.1.0",
   "private": true,
   "description": "Trojan + VLESS proxy on Cloudflare Workers with admin panel",
   "type": "module",
   "scripts": {
     "deploy": "wrangler deploy",
-    "deploy:production": "wrangler d1 migrations apply trojan --remote && wrangler deploy",
+    "deploy:production": "wrangler d1 migrations apply rocket --remote && wrangler deploy",
     "dev": "wrangler dev --ip 0.0.0.0",
     "start": "wrangler dev",
     "typecheck": "tsc --noEmit",

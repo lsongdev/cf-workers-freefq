@@ -60,6 +60,10 @@ export function AdminPage(props: {
                        href={`/link/vless/${user.uuid}`} target="_blank">VLESS</a>
                     <a class="button outline" style="font-size:.8rem;padding:.3rem .6rem"
                        href={`/link/trojan/${user.uuid}`} target="_blank">Trojan</a>
+                    <a class="button outline" style="font-size:.8rem;padding:.3rem .6rem"
+                       href={`/link/clash/${user.uuid}`} target="_blank">Clash</a>
+                    <a class="button outline" style="font-size:.8rem;padding:.3rem .6rem"
+                       href={`/link/shadowrocket/${user.uuid}`} target="_blank">Shadowrocket</a>
                   </div>
                 </td>
               </tr>
@@ -67,23 +71,6 @@ export function AdminPage(props: {
           </tbody>
         </table>
       )}
-
-      <details style="margin-top:2rem">
-        <summary style="cursor:pointer;color:var(--muted);font-size:.9rem">Config Links</summary>
-        {props.users.map((user) => (
-          <div key={user.id} style="margin-top:.75rem;padding:1rem;border:1px solid var(--border);border-radius:6px">
-            <strong>{user.name}</strong>
-            <div style="margin-top:.5rem;font-size:.85rem">
-              <div style="margin-bottom:.25rem;color:var(--muted)">VLESS</div>
-              <div class="config-link">{`vless://${user.uuid}@${props.host}:443?encryption=none&security=tls&sni=${props.host}&fp=randomized&type=ws&host=${props.host}&path=%2Fvless#${user.name}`}</div>
-            </div>
-            <div style="margin-top:.5rem;font-size:.85rem">
-              <div style="margin-bottom:.25rem;color:var(--muted)">Trojan</div>
-              <div class="config-link">{`trojan://${user.uuid}@${props.host}:443?type=ws&host=${props.host}&path=%2Ftrojan&security=tls#${user.name}`}</div>
-            </div>
-          </div>
-        ))}
-      </details>
     </Layout>
   );
 }

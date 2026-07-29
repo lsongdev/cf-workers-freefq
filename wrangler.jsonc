@@ -1,9 +1,12 @@
 {
   "$schema": "node_modules/wrangler/config-schema.json",
-  "name": "trojan",
+  "name": "rocket",
   "main": "src/index.tsx",
   "compatibility_date": "2026-07-29",
   "compatibility_flags": ["nodejs_compat"],
+  "assets": {
+    "directory": "./public"
+  },
   "workers_dev": true,
   "vars": {
     "APP_URL": "http://localhost:8787"
@@ -11,7 +14,7 @@
   "d1_databases": [
     {
       "binding": "DB",
-      "database_name": "trojan",
+      "database_name": "rocket",
       "database_id": "50caa101-52be-41dd-9581-80c24978253f",
       "migrations_dir": "./migrations"
     }

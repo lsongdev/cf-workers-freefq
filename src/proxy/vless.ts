@@ -70,7 +70,8 @@ export async function vlessOverWSHandler(request: Request, env: Env): Promise<Re
   const webSocketPair = new WebSocketPair();
   const pair = Object.values(webSocketPair) as [WebSocket, WebSocket];
   const [client, webSocket] = pair;
-  webSocket.accept();
+  webSocket.binaryType = "arraybuffer";
+  webSocket.accept({ allowHalfOpen: true });
 
   let address = "";
   let portWithRandomLog = "";
