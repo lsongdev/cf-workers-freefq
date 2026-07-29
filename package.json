@@ -1,13 +1,26 @@
 {
-    "name": "cf-workers-trojan",
-    "version": "0.0.0",
-    "private": true,
-    "scripts": {
-        "deploy": "wrangler deploy",
-        "dev": "wrangler dev --ip 0.0.0.0",
-        "start": "wrangler dev"
-    },
-    "devDependencies": {
-        "wrangler": "^3.0.0"
-    }
+  "name": "cf-workers-trojan",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Trojan + VLESS proxy on Cloudflare Workers with admin panel",
+  "type": "module",
+  "scripts": {
+    "deploy": "wrangler deploy",
+    "deploy:production": "wrangler d1 migrations apply trojan --remote && wrangler deploy",
+    "dev": "wrangler dev --ip 0.0.0.0",
+    "start": "wrangler dev",
+    "typecheck": "tsc --noEmit",
+    "types": "wrangler types"
+  },
+  "license": "MIT",
+  "dependencies": {
+    "hono": "^4.11.3"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "^5.20260729.1",
+    "@types/node": "^24.0.0",
+    "typescript": "^5.9.2",
+    "wrangler": "^4.115.0"
+  },
+  "packageManager": "pnpm@10.30.3"
 }

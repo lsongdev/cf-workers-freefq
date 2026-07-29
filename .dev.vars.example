@@ -1,0 +1,3 @@
+ACCESS_TOKEN=my-secret-admin-token
+SESSION_SECRET=a-random-64-char-hex-string-here-change-it
+PROXYIP=
