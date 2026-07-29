@@ -82,7 +82,6 @@ async function parseTrojanHeader(
   }
 
   const passwordHash = new TextDecoder().decode(buffer.slice(0, passwordHashLength));
-
   const user = await lookupTrojanUser(env, passwordHash);
   if (!user) {
     return { hasError: true, message: "invalid password" };

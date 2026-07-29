@@ -1,6 +1,7 @@
 import { Hono } from "hono";
 import { createAdminSession, currentAdmin, requireAdmin, revokeAdminSession } from "./auth";
 
+import { clearUserCache, lookupUserByUUID } from "./proxy/common";
 import { trojanOverWSHandler } from "./proxy/trojan";
 import { vlessOverWSHandler } from "./proxy/vless";
 import type { User } from "./types";
@@ -61,6 +62,7 @@ app.post("/admin/users", async (context) => {
     await context.env.DB.prepare(
       "INSERT INTO users (name, uuid) VALUES (?, ?)",
     ).bind(name, uuid).run();
+    clearUserCache();
   } catch {
     const users = await context.env.DB.prepare("SELECT * FROM users ORDER BY created_at DESC").all<User>();
     const host = context.req.header("Host") || "localhost:8787";
@@ -77,6 +79,7 @@ app.post("/admin/users/:id/toggle", async (context) => {
     await context.env.DB.prepare("UPDATE users SET enabled = ?, updated_at = datetime('now') WHERE id = ?")
       .bind(user.enabled ? 0 : 1, id)
       .run();
+    clearUserCache();
   }
   return context.redirect("/admin");
 });
@@ -85,6 +88,7 @@ app.post("/admin/users/:id/delete", async (context) => {
   if (!(await requireAdmin(context))) return context.redirect("/admin/login");
   const id = context.req.param("id");
   await context.env.DB.prepare("DELETE FROM users WHERE id = ?").bind(id).run();
+  clearUserCache();
   return context.redirect("/admin");
 });
 
@@ -106,9 +110,7 @@ app.get("/vless", async (context) => {
 
 app.get("/link/vless/:uuid", async (context) => {
   const uuid = context.req.param("uuid");
-  const user = await context.env.DB.prepare(
-    "SELECT * FROM users WHERE uuid = ? AND enabled = 1",
-  ).bind(uuid).first<User>();
+  const user = await lookupUserByUUID(context.env, uuid);
   if (!user) return context.text("User not found", 404);
   const host = context.req.header("Host") || "localhost:8787";
   const link = `vless://${user.uuid}@${host}:443?encryption=none&security=tls&sni=${host}&fp=randomized&type=ws&host=${host}&path=%2Fvless#${user.name}`;
@@ -117,9 +119,7 @@ app.get("/link/vless/:uuid", async (context) => {
 
 app.get("/link/trojan/:uuid", async (context) => {
   const uuid = context.req.param("uuid");
-  const user = await context.env.DB.prepare(
-    "SELECT * FROM users WHERE uuid = ? AND enabled = 1",
-  ).bind(uuid).first<User>();
+  const user = await lookupUserByUUID(context.env, uuid);
   if (!user) return context.text("User not found", 404);
   const host = context.req.header("Host") || "localhost:8787";
   const link = `trojan://${user.uuid}@${host}:443?type=ws&host=${host}&path=%2Ftrojan&security=tls#${user.name}`;
@@ -129,9 +129,7 @@ app.get("/link/trojan/:uuid", async (context) => {
 app.get("/link/clash/:uuid", async (context) => {
   const uuid = context.req.param("uuid");
   const host = context.req.header("Host") || "localhost:8787";
-  const user = await context.env.DB.prepare(
-    "SELECT * FROM users WHERE uuid = ? AND enabled = 1",
-  ).bind(uuid).first<User>();
+  const user = await lookupUserByUUID(context.env, uuid);
   if (!user) return context.text("User not found", 404);
   return context.text(clashConfig([user], host), 200, { "Content-Type": "text/yaml; charset=utf-8" });
 });
@@ -139,9 +137,7 @@ app.get("/link/clash/:uuid", async (context) => {
 app.get("/link/shadowrocket/:uuid", async (context) => {
   const uuid = context.req.param("uuid");
   const host = context.req.header("Host") || "localhost:8787";
-  const user = await context.env.DB.prepare(
-    "SELECT * FROM users WHERE uuid = ? AND enabled = 1",
-  ).bind(uuid).first<User>();
+  const user = await lookupUserByUUID(context.env, uuid);
   if (!user) return context.text("User not found", 404);
   return context.text(rocketConfig([user], host));
 });
