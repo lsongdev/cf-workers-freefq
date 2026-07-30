@@ -8,9 +8,6 @@ export function AdminPage(props: {
 }) {
   return (
     <Layout title="Dashboard" admin error={props.error}>
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1.5rem">
-        <h1 style="margin:0">Proxy Users</h1>
-      </div>
 
       <section style="margin-bottom:2rem;padding:1.25rem;border:1px solid var(--border);border-radius:8px;background:var(--card-bg)">
         <h2 style="margin-bottom:1rem">Add User</h2>
@@ -26,7 +23,7 @@ export function AdminPage(props: {
       {props.users.length === 0 ? (
         <div class="empty">No users yet. Add your first user above.</div>
       ) : (
-        <table>
+        <table style="white-space:nowrap">
           <thead>
             <tr>
               <th>Name</th>

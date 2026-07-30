@@ -2,6 +2,8 @@
 
 A **Trojan + VLESS proxy** running on Cloudflare Workers, with an admin panel for user management.
 
+[![Deploy to Cloudflare Workers](https://deploy.workers.cloudflare.com/button)](https://deploy.workers.cloudflare.com/?url=https://github.com/lsongdev/cf-workers-rocket)
+
 ## Features
 
 - **Trojan & VLESS protocol support** over WebSocket

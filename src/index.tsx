@@ -4,6 +4,7 @@ import { createAdminSession, currentAdmin, requireAdmin, revokeAdminSession } fr
 import { clearUserCache, lookupUserByUUID } from "./proxy/common";
 import { trojanOverWSHandler } from "./proxy/trojan";
 import { vlessOverWSHandler } from "./proxy/vless";
+import { sha224 } from "./crypto";
 import type { User } from "./types";
 import { AdminPage } from "./views/admin";
 import { LoginPage } from "./views/login";
@@ -58,10 +59,11 @@ app.post("/admin/users", async (context) => {
     return context.html(<AdminPage users={users.results} host={host} error="Name is required." />, 400);
   }
   const uuid = crypto.randomUUID();
+  const uuidHash = await sha224(uuid);
   try {
     await context.env.DB.prepare(
-      "INSERT INTO users (name, uuid) VALUES (?, ?)",
-    ).bind(name, uuid).run();
+      "INSERT INTO users (name, uuid, uuid_hash) VALUES (?, ?, ?)",
+    ).bind(name, uuid, uuidHash).run();
     clearUserCache();
   } catch {
     const users = await context.env.DB.prepare("SELECT * FROM users ORDER BY created_at DESC").all<User>();
@@ -144,11 +146,11 @@ app.get("/link/shadowrocket/:uuid", async (context) => {
 
 function clashConfig(users: User[], host: string): string {
   const lines: string[] = [
-    "port: 7890",
-    "socks-port: 7891",
-    "mode: Rule",
-    "log-level: info",
-    "",
+    // "port: 7890",
+    // "socks-port: 7891",
+    // "mode: Rule",
+    // "log-level: info",
+    // "",
     "proxies:",
   ];
   for (const u of users) {
@@ -180,11 +182,11 @@ function clashConfig(users: User[], host: string): string {
       `        Host: ${host}`,
     );
   }
-  lines.push("", "proxy-groups:", `  - name: Proxy`, `    type: select`, `    proxies:`, `      - "DIRECT"`);
-  for (const u of users) {
-    lines.push(`      - "${u.name}-vless"`, `      - "${u.name}-trojan"`);
-  }
-  lines.push("", "rules:", '  - MATCH,Proxy');
+  // lines.push("", "proxy-groups:", `  - name: Proxy`, `    type: select`, `    proxies:`, `      - "DIRECT"`);
+  // for (const u of users) {
+  //   lines.push(`      - "${u.name}-vless"`, `      - "${u.name}-trojan"`);
+  // }
+  // lines.push("", "rules:", '  - MATCH,Proxy');
   return lines.join("\n");
 }
 

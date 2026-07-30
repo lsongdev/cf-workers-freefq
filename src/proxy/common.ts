@@ -1,5 +1,5 @@
 import type { User } from "../types";
-import { sha224 } from "../crypto";
+// import { sha224 } from "../crypto";
 
 export const WS_READY_STATE_OPEN = 1;
 
@@ -191,15 +191,15 @@ export async function lookupTrojanUser(env: Env, passwordHash: string): Promise<
   const cached = getCachedUser(cacheKey);
   if (cached !== undefined) return cached;
 
-  const users = await env.DB.prepare("SELECT * FROM users WHERE enabled = 1").all<User>();
-  for (const user of users.results) {
-    if (await sha224(user.uuid) === normalizedHash) {
-      cacheUser(cacheKey, user);
-      cacheUser(`uuid:${user.uuid.toLowerCase()}`, user);
-      return user;
-    }
-  }
+  const user = await env.DB.prepare(
+    "SELECT * FROM users WHERE uuid_hash = ? AND enabled = 1",
+  ).bind(normalizedHash).first<User>();
 
+  if (user) {
+    cacheUser(cacheKey, user);
+    cacheUser(`uuid:${user.uuid.toLowerCase()}`, user);
+    return user;
+  }
   cacheUser(cacheKey, null);
   return null;
 }
