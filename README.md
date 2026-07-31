@@ -1,5 +1,12 @@
 # cf-workers-rocket
 
+> [!CAUTION]
+> Cloudflare 可能会封禁代理类服务，使用前请自行评估风险
+
+> [!WARNING]
+> This project is in early development and may contain bugs. Use at your own risk.
+> 使用本项目可能会消耗大量网络流量，超出 Cloudflare 额度可能会额外收费
+
 A **Trojan + VLESS proxy** running on Cloudflare Workers, with an admin panel for user management.
 
 [![Deploy to Cloudflare Workers](https://deploy.workers.cloudflare.com/button)](https://deploy.workers.cloudflare.com/?url=https://github.com/lsongdev/cf-workers-rocket)
@@ -23,7 +30,13 @@ A **Trojan + VLESS proxy** running on Cloudflare Workers, with an admin panel fo
 
 ```bash
 pnpm install
+
 cp .dev.vars.example .dev.vars   # edit with your secrets
+
+# Migrations are in `migrations/`. Apply them with:
+wrangler d1 migrations apply rocket --local    # local dev
+wrangler d1 migrations apply rocket --remote   # production
+
 pnpm run types                   # generate Worker types
 pnpm run dev                     # start local dev server
 ```
@@ -67,15 +80,7 @@ Set them via `wrangler secret put <NAME>` for production, or in `.dev.vars` for 
 | `GET /link/clash/:uuid` | Clash YAML config |
 | `GET /link/shadowrocket/:uuid` | Shadowrocket config |
 
-## Database
 
-Migrations are in `migrations/`. Apply them with:
+# License
 
-```bash
-wrangler d1 migrations apply rocket --local    # local dev
-wrangler d1 migrations apply rocket --remote   # production
-```
-
-## Architecture
-
-The worker uses the [Hono](https://hono.dev/) framework. Admin sessions are stored in D1 with SHA-256 hashed tokens and a 4-hour TTL. Proxy handlers authenticate users against D1 and pipe TCP traffic bidirectionally over WebSocket. User data is cached per-isolate with a 5-minute TTL and LRU eviction.
+This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
